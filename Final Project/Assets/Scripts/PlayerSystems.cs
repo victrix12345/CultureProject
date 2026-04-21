@@ -3,6 +3,8 @@ using UnityEngine;
 public class PlayerSystems : MonoBehaviour
 {
     private InputSystem_Actions inputActions;
+    private Vector3 move;
+
 
     void Awake()
     {
