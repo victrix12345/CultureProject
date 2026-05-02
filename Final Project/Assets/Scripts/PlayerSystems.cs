@@ -10,6 +10,7 @@ public class PlayerSystems : MonoBehaviour
     private Vector3 playerVel;
     private Vector2 movement;
     private bool grounded, jumped, sneaked;
+    public GameObject cam;
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -29,11 +30,13 @@ public class PlayerSystems : MonoBehaviour
     {
         inputActions.Player.Move.Enable();
         inputActions.Player.Jump.Enable();
+        inputActions.Player.Sprint.Enable();
     }
     private void OnDisable() // GOOD HABIT PART 2
     {
         inputActions.Player.Move.Disable();
         inputActions.Player.Jump.Disable();
+        inputActions.Player.Sprint.Disable();
     }
     public IEnumerator Jump()
     {
@@ -47,12 +50,14 @@ public class PlayerSystems : MonoBehaviour
         Vector3 newMove = new(movement.x, 0, movement.y);
         newMove = Vector3.ClampMagnitude(newMove, 1);
 
-        if (jumped) StartCoroutine(Jump());
+        if (jumped && grounded) StartCoroutine(Jump());
 
         if (grounded && !jumped && playerVel.y < -2) playerVel.y = -2; // stabilising movement on slopes
 
         else grav = -9.81f * 3; // default gravity
         playerVel.y += grav * Time.deltaTime; // applying gravity
+
+        if (sneaked) speed /= 2;
 
         Vector3 endMove = newMove * speed + Vector3.up * playerVel.y;
         charCon.Move(endMove * Time.deltaTime); // apply all necessary forces calculated
