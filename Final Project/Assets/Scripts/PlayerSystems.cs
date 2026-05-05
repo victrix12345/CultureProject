@@ -1,21 +1,22 @@
 using System.Collections;
-using System.Threading.Tasks;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerSystems : MonoBehaviour
 {
+    private static WaitForSeconds _waitForSeconds0_2 = new WaitForSeconds(0.2f);
     private InputSystem_Actions inputActions;
     private CharacterController charCon;
-    private float grav = -9.81f / 2, jumpHeight = 5f, speed = 7f;
-    private Vector3 playerVel;
+    private float grav = -9.81f / 2, jumpHeight = 5f, speed = 7f, rayDistance, rayDrawTime;
+    private Vector3 playerVel, rayStart, rayDirection;
     private Vector2 movement, look;
-    private bool grounded, jumped, sneaked, shooting;
+    private bool grounded = true, jumped = false, sneaked = false, shooting = false, targetted = false, rayHit = false;
     public GameObject cam;
+    private int entityLayerMask;
     void Awake()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        entityLayerMask = LayerMask.GetMask("Entity");
+        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+        UnityEngine.Cursor.visible = false;
 
         inputActions = new InputSystem_Actions();
         charCon = GetComponent<CharacterController>();
@@ -86,17 +87,40 @@ public class PlayerSystems : MonoBehaviour
         transform.localEulerAngles = new(0, facing.y, 0);
         cam.transform.localEulerAngles = new(facingCam.x, 0, 0);
 
-        if (shooting) StartCoroutine(Shooting());
+        if (shooting && !targetted) StartCoroutine(Shooting());
     }
     IEnumerator Shooting()
     {
+        targetted = true;
         RaycastHit aimInfo = new();
-        bool isHit = Physics.Raycast(cam.transform.position, cam.transform.forward, out aimInfo, 100f, 3);
+        bool isHit = Physics.Raycast(cam.transform.position, cam.transform.forward, out aimInfo, 100f, entityLayerMask);
+
+        rayStart = cam.transform.position;
+        rayDirection = cam.transform.forward;
+        rayDistance = isHit ? aimInfo.distance : 100f;
+        rayHit = isHit;
+        rayDrawTime = 0.2f;
+
         if (isHit)
         {
             HealthSystem targetHealth = aimInfo.collider.gameObject.GetComponent<HealthSystem>();
-            targetHealth.DealDamage(34);
+            if (targetHealth != null)
+            {
+                int damage = Random.Range(20, 40);
+                targetHealth.DealDamage(damage);
+                Debug.Log("Dealt " + damage + " damage to " + aimInfo.collider.name);
+            }
         }
-        yield return new WaitForSeconds(0.1f);
+        yield return _waitForSeconds0_2;
+        targetted = false;
+    }
+    private void OnDrawGizmos()
+    {
+        if (rayDrawTime > 0)
+        {
+            Gizmos.color = rayHit ? Color.green : Color.red;
+            Gizmos.DrawRay(rayStart, rayDirection * rayDistance);
+            rayDrawTime -= Time.deltaTime;
+        }
     }
 }
