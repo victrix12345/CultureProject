@@ -549,7 +549,7 @@ GameObject:
   - component: {fileID: 1247306640}
   - component: {fileID: 1247306645}
   m_Layer: 3
-  m_Name: PlayerEntity (1)
+  m_Name: EnemyEntity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -715,7 +715,8 @@ Transform:
   m_LocalPosition: {x: 0.582, y: 0.231, z: 0.6944}
   m_LocalScale: {x: 0.50481415, y: 0.26702, z: 0.25156}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1948720360}
   m_Father: {fileID: 1880925157}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1495775637
@@ -1053,6 +1054,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cam: {fileID: 330585543}
+  shootPoint: {fileID: 1948720359}
 --- !u!114 &1880925160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1065,6 +1067,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bf214d907542824a96baf4b7f14f577, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1948720359
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1948720360}
+  m_Layer: 0
+  m_Name: ShootPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1948720360
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1948720359}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.496, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1495775636}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

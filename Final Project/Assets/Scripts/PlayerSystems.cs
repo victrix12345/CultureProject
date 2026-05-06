@@ -3,15 +3,16 @@ using UnityEngine;
 
 public class PlayerSystems : MonoBehaviour
 {
-    private static WaitForSeconds _waitForSeconds0_2 = new WaitForSeconds(0.2f);
+    private static WaitForSeconds _waitForSeconds0_1 = new WaitForSeconds(0.1f);
     private InputSystem_Actions inputActions;
     private CharacterController charCon;
-    private float grav = -9.81f / 2, jumpHeight = 5f, speed = 7f, rayDistance, rayDrawTime;
+    private float grav = -9.81f / 2, jumpHeight = 5f, speed = 7f, rayDistance, rayFireTime, rayVisibleDuration = 0.2f;
     private Vector3 playerVel, rayStart, rayDirection;
     private Vector2 movement, look;
     private bool grounded = true, jumped = false, sneaked = false, shooting = false, targetted = false, rayHit = false;
-    public GameObject cam;
+    public GameObject cam, shootPoint;
     private int entityLayerMask;
+    private LineRenderer lineRenderer;
     void Awake()
     {
         entityLayerMask = LayerMask.GetMask("Entity");
@@ -35,6 +36,13 @@ public class PlayerSystems : MonoBehaviour
 
         inputActions.Player.Attack.performed += _ => shooting = true;
         inputActions.Player.Attack.canceled += _ => shooting = false;
+
+        GameObject lineObj = new GameObject("RayVisualizer");
+        lineObj.transform.SetParent(transform);
+        lineRenderer = lineObj.AddComponent<LineRenderer>();
+        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        lineRenderer.startWidth = 0.05f;
+        lineRenderer.endWidth = 0.05f;
     }
     private void OnEnable() // GOOD HABIT PART 1
     {
@@ -93,13 +101,19 @@ public class PlayerSystems : MonoBehaviour
     {
         targetted = true;
         RaycastHit aimInfo = new();
-        bool isHit = Physics.Raycast(cam.transform.position, cam.transform.forward, out aimInfo, 100f, entityLayerMask);
+        bool isHit = Physics.Raycast(cam.transform.position, cam.transform.forward, out aimInfo, 30f, entityLayerMask);
 
-        rayStart = cam.transform.position;
+        rayStart = shootPoint.transform.position;
         rayDirection = cam.transform.forward;
-        rayDistance = isHit ? aimInfo.distance : 100f;
+        rayDistance = isHit ? aimInfo.distance : 30f;
         rayHit = isHit;
-        rayDrawTime = 0.2f;
+        rayFireTime = Time.time;
+
+        lineRenderer.enabled = true;
+        lineRenderer.SetPosition(0, rayStart);
+        lineRenderer.SetPosition(1, rayStart + rayDirection * rayDistance);
+        lineRenderer.startColor = rayHit ? Color.green : Color.red;
+        lineRenderer.endColor = rayHit ? Color.green : Color.red;
 
         if (isHit)
         {
@@ -111,16 +125,9 @@ public class PlayerSystems : MonoBehaviour
                 Debug.Log("Dealt " + damage + " damage to " + aimInfo.collider.name);
             }
         }
-        yield return _waitForSeconds0_2;
+        yield return _waitForSeconds0_1;
+        lineRenderer.enabled = false;
+        yield return _waitForSeconds0_1;
         targetted = false;
-    }
-    private void OnDrawGizmos()
-    {
-        if (rayDrawTime > 0)
-        {
-            Gizmos.color = rayHit ? Color.green : Color.red;
-            Gizmos.DrawRay(rayStart, rayDirection * rayDistance);
-            rayDrawTime -= Time.deltaTime;
-        }
     }
 }
