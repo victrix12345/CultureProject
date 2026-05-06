@@ -6,7 +6,7 @@ public class PlayerSystems : MonoBehaviour
     private static WaitForSeconds _waitForSeconds0_1 = new WaitForSeconds(0.1f);
     private InputSystem_Actions inputActions;
     private CharacterController charCon;
-    private float grav = -9.81f / 2, jumpHeight = 5f, speed = 7f, rayDistance, rayFireTime, rayVisibleDuration = 0.2f;
+    private float grav = -9.81f / 2, jumpHeight = 5f, speed = 7f, rayDistance, rayFireTime;
     private Vector3 playerVel, rayStart, rayDirection;
     private Vector2 movement, look;
     private bool grounded = true, jumped = false, sneaked = false, shooting = false, targetted = false, rayHit = false;
@@ -16,8 +16,8 @@ public class PlayerSystems : MonoBehaviour
     void Awake()
     {
         entityLayerMask = LayerMask.GetMask("Entity");
-        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
-        UnityEngine.Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
         inputActions = new InputSystem_Actions();
         charCon = GetComponent<CharacterController>();
