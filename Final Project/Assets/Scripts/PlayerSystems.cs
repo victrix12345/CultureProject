@@ -80,6 +80,7 @@ public class PlayerSystems : MonoBehaviour
         playerVel.y += grav * Time.deltaTime; // applying gravity
 
         if (sneaked) speed = 3.5f;
+        else speed = 7f;
 
         Vector3 endMove = (newMove * speed) + (Vector3.up * playerVel.y);
         charCon.Move(endMove * Time.deltaTime); // apply all necessary forces calculated
@@ -129,5 +130,9 @@ public class PlayerSystems : MonoBehaviour
         lineRenderer.enabled = false;
         yield return _waitForSeconds0_1;
         targetted = false;
+    }
+    private void OnDestroy()
+    {
+        inputActions?.Dispose();
     }
 }
