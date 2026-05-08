@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro.SpriteAssetUtilities;
 using UnityEngine;
 
 public class PlayerSystems : MonoBehaviour
@@ -11,11 +12,12 @@ public class PlayerSystems : MonoBehaviour
     private Vector2 movement, look;
     private bool grounded = true, jumped = false, sneaked = false, shooting = false, targetted = false, rayHit = false;
     public GameObject cam, shootPoint;
-    private int entityLayerMask;
+    private int entityLayerMask, mapLayerMask;
     private LineRenderer lineRenderer;
     void Awake()
     {
         entityLayerMask = LayerMask.GetMask("Entity");
+        mapLayerMask = LayerMask.GetMask("Map");
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -102,21 +104,25 @@ public class PlayerSystems : MonoBehaviour
     {
         targetted = true;
         RaycastHit aimInfo = new();
-        bool isHit = Physics.Raycast(cam.transform.position, cam.transform.forward, out aimInfo, 30f, entityLayerMask);
+        bool isHit = Physics.Raycast(cam.transform.position, cam.transform.forward, out aimInfo, 30f);
+        Vector3 targetPoint = isHit ? aimInfo.point : cam.transform.position + cam.transform.forward * 30f;
+        Vector3 barrelDir = (targetPoint - shootPoint.transform.position).normalized;
+        float barrelDist = (shootPoint.transform.position - targetPoint).sqrMagnitude;
+        bool mapHit = Physics.Raycast(shootPoint.transform.position, targetPoint, barrelDist);
 
         rayStart = shootPoint.transform.position;
-        rayDirection = cam.transform.forward;
-        rayDistance = isHit ? aimInfo.distance : 30f;
-        rayHit = isHit;
+        rayDirection = barrelDir;
+        rayDistance = barrelDist;
+        rayHit = mapHit;
         rayFireTime = Time.time;
 
         lineRenderer.enabled = true;
         lineRenderer.SetPosition(0, rayStart);
-        lineRenderer.SetPosition(1, rayStart + rayDirection * rayDistance);
+        lineRenderer.SetPosition(1, targetPoint);
         lineRenderer.startColor = rayHit ? Color.green : Color.red;
         lineRenderer.endColor = rayHit ? Color.green : Color.red;
 
-        if (isHit)
+        if (isHit && !mapHit)
         {
             HealthSystem targetHealth = aimInfo.collider.gameObject.GetComponent<HealthSystem>();
             if (targetHealth != null)
