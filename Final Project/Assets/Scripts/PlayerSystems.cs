@@ -5,9 +5,10 @@ using UnityEngine;
 public class PlayerSystems : MonoBehaviour
 {
     private static WaitForSeconds _waitForSeconds0_1 = new WaitForSeconds(0.1f);
+    private static WaitForSeconds _waitForSeconds1 = new WaitForSeconds(1f);
     private InputSystem_Actions inputActions;
     private CharacterController charCon;
-    private float grav = -9.81f / 2, jumpHeight = 5f, speed = 7f, rayDistance, rayFireTime;
+    private float grav = -9.81f / 2, jumpHeight = 2f, speed = 7f, rayDistance, rayFireTime;
     private Vector3 playerVel, rayStart, rayDirection;
     private Vector2 movement, look;
     private bool grounded = true, jumped = false, sneaked = false, shooting = false, targetted = false, rayHit = false;
@@ -65,7 +66,7 @@ public class PlayerSystems : MonoBehaviour
     public IEnumerator Jump()
     {
         playerVel.y = Mathf.Sqrt(jumpHeight * -2 * grav);
-        yield return new WaitForSeconds(1f);
+        yield return _waitForSeconds1;
     }
     private void FixedUpdate()
     {
@@ -76,16 +77,16 @@ public class PlayerSystems : MonoBehaviour
 
         if (jumped && grounded) StartCoroutine(Jump());
 
-        if (grounded && !jumped && playerVel.y < -2) playerVel.y = -2; // stabilising movement on slopes
+        if (grounded && !jumped && playerVel.y < -2) playerVel.y = -2;
 
-        else grav = -9.81f * 3; // default gravity
-        playerVel.y += grav * Time.deltaTime; // applying gravity
+        else grav = -9.81f * 3;
+        playerVel.y += grav * Time.deltaTime;
 
         if (sneaked) speed = 3.5f;
         else speed = 7f;
 
         Vector3 endMove = (newMove * speed) + (Vector3.up * playerVel.y);
-        charCon.Move(endMove * Time.deltaTime); // apply all necessary forces calculated
+        charCon.Move(endMove * Time.deltaTime);
     }
     private void Update()
     {
