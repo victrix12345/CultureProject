@@ -13,11 +13,10 @@ public class PlayerSystems : MonoBehaviour
     private Vector2 movement, look;
     private bool grounded = true, jumped = false, sneaked = false, shooting = false, targetted = false, rayHit = false;
     public GameObject cam, shootPoint;
-    private int entityLayerMask, mapLayerMask;
+    private int mapLayerMask;
     private LineRenderer lineRenderer;
     void Awake()
     {
-        entityLayerMask = LayerMask.GetMask("Entity");
         mapLayerMask = LayerMask.GetMask("Map");
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -90,14 +89,7 @@ public class PlayerSystems : MonoBehaviour
     }
     private void Update()
     {
-        Vector3 facing = gameObject.transform.localEulerAngles;
-        Vector3 facingCam = cam.transform.localEulerAngles;
-        facing.y += look.x;
-        if (facingCam.x >= 270) facingCam.x -= 360;
-        facingCam.x = Mathf.Clamp(facingCam.x, -70, 70);
-        facingCam.x -= look.y;
-        transform.localEulerAngles = new(0, facing.y, 0);
-        cam.transform.localEulerAngles = new(facingCam.x, 0, 0);
+        CameraCalc();
 
         if (shooting && !targetted) StartCoroutine(Shooting());
     }
@@ -108,8 +100,8 @@ public class PlayerSystems : MonoBehaviour
         bool isHit = Physics.Raycast(cam.transform.position, cam.transform.forward, out aimInfo, 30f);
         Vector3 targetPoint = isHit ? aimInfo.point : cam.transform.position + cam.transform.forward * 30f;
         Vector3 barrelDir = (targetPoint - shootPoint.transform.position).normalized;
-        float barrelDist = (shootPoint.transform.position - targetPoint).sqrMagnitude;
-        bool mapHit = Physics.Raycast(shootPoint.transform.position, targetPoint, barrelDist);
+        float barrelDist = (shootPoint.transform.position - targetPoint).magnitude;
+        bool mapHit = Physics.Raycast(shootPoint.transform.position, barrelDir, barrelDist, mapLayerMask);
 
         rayStart = shootPoint.transform.position;
         rayDirection = barrelDir;
@@ -128,7 +120,7 @@ public class PlayerSystems : MonoBehaviour
             HealthSystem targetHealth = aimInfo.collider.gameObject.GetComponent<HealthSystem>();
             if (targetHealth != null)
             {
-                int damage = Random.Range(20, 40);
+                int damage = Random.Range(30, 40);
                 targetHealth.DealDamage(damage);
                 Debug.Log("Dealt " + damage + " damage to " + aimInfo.collider.name);
             }
@@ -141,5 +133,18 @@ public class PlayerSystems : MonoBehaviour
     private void OnDestroy()
     {
         inputActions?.Dispose();
+    }
+    private void CameraCalc()
+    { 
+        Vector3 facing = gameObject.transform.localEulerAngles;
+        Vector3 facingCam = cam.transform.localEulerAngles;
+        facing.y += look.x;
+        if (facingCam.x >= 270) facingCam.x -= 360;
+        facingCam.x = Mathf.Clamp(facingCam.x, -70, 70);
+        facingCam.x -= look.y;
+        transform.localEulerAngles = new(0, facing.y, 0);
+        cam.transform.localEulerAngles = new(facingCam.x, 0, 0);
+
+
     }
 }
