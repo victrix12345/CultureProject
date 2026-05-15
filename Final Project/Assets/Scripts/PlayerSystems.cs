@@ -1,22 +1,34 @@
 using System.Collections;
-using TMPro.SpriteAssetUtilities;
 using UnityEngine;
+using TMPro;
 
 public class PlayerSystems : MonoBehaviour
 {
-    private static WaitForSeconds _waitForSeconds0_1 = new WaitForSeconds(0.1f);
-    private static WaitForSeconds _waitForSeconds1 = new WaitForSeconds(1f);
+    private static WaitForSeconds 
+        _waitForSeconds0_1 = new WaitForSeconds(0.1f),
+        _waitForSeconds0_5 = new WaitForSeconds(0.5f), 
+        _waitForSeconds1 = new WaitForSeconds(1f);
     private InputSystem_Actions inputActions;
     private CharacterController charCon;
-    private float grav = -9.81f / 2, jumpHeight = 2f, speed = 7f, rayDistance, rayFireTime;
-    private Vector3 playerVel, rayStart, rayDirection;
+    private const float grav = (-9.81f * 1.5f), jumpHeight = 2f;
+    private float speed;
+    private Vector3 playerVel;
     private Vector2 movement, look;
-    private bool grounded = true, jumped = false, sneaked = false, shooting = false, targetted = false, rayHit = false;
+    private bool 
+        grounded = true, 
+        jumped = false, 
+        sneaked = false, 
+        shooting = false, 
+        targetted = false, 
+        reloadInput = false, 
+        reloading = false;
     public GameObject cam, shootPoint;
-    private int mapLayerMask;
+    private int mapLayerMask, storedMag = 2, currentAmmo = 20;
     private LineRenderer lineRenderer;
+    public TextMeshProUGUI ammo;
     void Awake()
     {
+        UpdateAmmoUI();
         mapLayerMask = LayerMask.GetMask("Map");
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -39,6 +51,9 @@ public class PlayerSystems : MonoBehaviour
         inputActions.Player.Attack.performed += _ => shooting = true;
         inputActions.Player.Attack.canceled += _ => shooting = false;
 
+        inputActions.Player.Interact.performed += _ => reloadInput = true;
+        inputActions.Player.Interact.canceled += _ => reloadInput = false;
+
         GameObject lineObj = new GameObject("RayVisualizer");
         lineObj.transform.SetParent(transform);
         lineRenderer = lineObj.AddComponent<LineRenderer>();
@@ -48,19 +63,11 @@ public class PlayerSystems : MonoBehaviour
     }
     private void OnEnable() // GOOD HABIT PART 1
     {
-        inputActions.Player.Move.Enable();
-        inputActions.Player.Jump.Enable();
-        inputActions.Player.Sprint.Enable();
-        inputActions.Player.Look.Enable();
-        inputActions.Player.Attack.Enable();
+        inputActions.Player.Enable();
     }
     private void OnDisable() // GOOD HABIT PART 2
     {
-        inputActions.Player.Move.Disable();
-        inputActions.Player.Jump.Disable();
-        inputActions.Player.Sprint.Disable();
-        inputActions.Player.Look.Disable();
-        inputActions.Player.Attack.Disable();
+        inputActions.Player.Disable();
     }
     public IEnumerator Jump()
     {
@@ -78,11 +85,9 @@ public class PlayerSystems : MonoBehaviour
 
         if (grounded && !jumped && playerVel.y < -2) playerVel.y = -2;
 
-        else grav = -9.81f * 3;
         playerVel.y += grav * Time.deltaTime;
 
-        if (sneaked) speed = 3.5f;
-        else speed = 7f;
+        speed = sneaked ? 3.5f : 7;
 
         Vector3 endMove = (newMove * speed) + (Vector3.up * playerVel.y);
         charCon.Move(endMove * Time.deltaTime);
@@ -91,7 +96,8 @@ public class PlayerSystems : MonoBehaviour
     {
         CameraCalc();
 
-        if (shooting && !targetted) StartCoroutine(Shooting());
+        if (shooting && !targetted && currentAmmo > 0) StartCoroutine(Shooting());
+        if (!shooting && !targetted && reloadInput && storedMag > 0 && !reloading) StartCoroutine(Reload());
     }
     IEnumerator Shooting()
     {
@@ -103,31 +109,26 @@ public class PlayerSystems : MonoBehaviour
         float barrelDist = (shootPoint.transform.position - targetPoint).magnitude;
         bool mapHit = Physics.Raycast(shootPoint.transform.position, barrelDir, barrelDist, mapLayerMask);
 
-        rayStart = shootPoint.transform.position;
-        rayDirection = barrelDir;
-        rayDistance = barrelDist;
-        rayHit = mapHit;
-        rayFireTime = Time.time;
-
         lineRenderer.enabled = true;
-        lineRenderer.SetPosition(0, rayStart);
+        lineRenderer.SetPosition(0, shootPoint.transform.position);
         lineRenderer.SetPosition(1, targetPoint);
-        lineRenderer.startColor = rayHit ? Color.green : Color.red;
-        lineRenderer.endColor = rayHit ? Color.green : Color.red;
+        lineRenderer.startColor = !mapHit ? Color.green : Color.red;
+        lineRenderer.endColor = !mapHit ? Color.green : Color.red;
 
         if (isHit && !mapHit)
         {
-            HealthSystem targetHealth = aimInfo.collider.gameObject.GetComponent<HealthSystem>();
-            if (targetHealth != null)
+            if (aimInfo.collider.TryGetComponent<HealthSystem>(out var targetHealth))
             {
                 int damage = Random.Range(30, 40);
                 targetHealth.DealDamage(damage);
-                Debug.Log("Dealt " + damage + " damage to " + aimInfo.collider.name);
+                Debug.Log($"Dealt {damage} damage to {aimInfo.collider.name}");
             }
         }
+
+        currentAmmo--;
+        UpdateAmmoUI();
         yield return _waitForSeconds0_1;
         lineRenderer.enabled = false;
-        yield return _waitForSeconds0_1;
         targetted = false;
     }
     private void OnDestroy()
@@ -144,7 +145,15 @@ public class PlayerSystems : MonoBehaviour
         facingCam.x -= look.y;
         transform.localEulerAngles = new(0, facing.y, 0);
         cam.transform.localEulerAngles = new(facingCam.x, 0, 0);
-
-
     }
+    public IEnumerator Reload()
+    {
+        reloading = true;
+        yield return _waitForSeconds0_5;
+        currentAmmo = 20;
+        storedMag--;
+        UpdateAmmoUI();
+        reloading = false;
+    }
+    private void UpdateAmmoUI() => ammo.text = $"{currentAmmo}/{storedMag}";
 }

@@ -1,20 +1,26 @@
-using Unity.VisualScripting;
 using UnityEngine;
-
+using TMPro;
 public class HealthSystem : MonoBehaviour
 {
-    int health = 100;
+    private int health = 100;
+    private const int HEALTHMAX = 100;
+    public TextMeshProUGUI healthUI;
+    private bool isPlayer = false;
+    private void Awake()
+    {
+        if (GetComponentInParent<PlayerSystems>() != null) isPlayer = true;
+        if (isPlayer) UpdateHealthUI();
+    }
     public void DealDamage(int dmg)
     {
         health -= dmg;
-        if (health <= 0)
-        {
-            Destroy(gameObject);
-            Destroy(this);
-        }
+        if (isPlayer) UpdateHealthUI();
+        if (health <= 0) Destroy(gameObject);
     }
     public void HealDamage(int heal)
     {
-        health = (health + heal > 100) ? 100 : health + heal;
+        health = Mathf.Min(health + heal, HEALTHMAX);
+        if (isPlayer) UpdateHealthUI();
     }
+    private void UpdateHealthUI() => healthUI.text = $"{health}/{HEALTHMAX}";
 }
