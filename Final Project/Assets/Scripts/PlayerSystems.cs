@@ -11,9 +11,9 @@ public class PlayerSystems : MonoBehaviour
     private InputSystem_Actions inputActions;
     private CharacterController charCon;
     private const float grav = (-9.81f * 1.5f), jumpHeight = 2f;
-    private float speed;
+    private float speed, recoilMultiplier = 0;
     private Vector3 playerVel;
-    private Vector2 movement, look;
+    private Vector2 movement, look, recoil;
     private bool 
         grounded = true, 
         jumped = false, 
@@ -96,7 +96,11 @@ public class PlayerSystems : MonoBehaviour
     {
         CameraCalc();
 
-        if (shooting && !targetted && currentAmmo > 0) StartCoroutine(Shooting());
+        if (shooting && !targetted && currentAmmo > 0)
+        {
+            StartCoroutine(Shooting());
+            StartCoroutine(RecoilOverTime());
+        }
         if (!shooting && !targetted && reloadInput && storedMag > 0 && !reloading) StartCoroutine(Reload());
     }
     IEnumerator Shooting()
@@ -156,4 +160,15 @@ public class PlayerSystems : MonoBehaviour
         reloading = false;
     }
     private void UpdateAmmoUI() => ammo.text = $"{currentAmmo}/{storedMag}";
+    private void RecoilOverTime()
+    {
+        while (shooting)
+        {
+            recoilMultiplier++;
+        }
+        while (!shooting && recoilMultiplier > 0)
+        {
+            recoilMultiplier--;
+        }
+    }
 }
