@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
+using System.Net;
 
 public class PlayerSystems : MonoBehaviour
 {
@@ -26,6 +27,7 @@ public class PlayerSystems : MonoBehaviour
     private int mapLayerMask, storedMag = 2, currentAmmo = 20;
     private LineRenderer lineRenderer;
     public TextMeshProUGUI ammo;
+    private Coroutine recoilCoroutine;
     void Awake()
     {
         UpdateAmmoUI();
@@ -61,11 +63,11 @@ public class PlayerSystems : MonoBehaviour
         lineRenderer.startWidth = 0.05f;
         lineRenderer.endWidth = 0.05f;
     }
-    private void OnEnable() // GOOD HABIT PART 1
+    private void OnEnable()
     {
         inputActions.Player.Enable();
     }
-    private void OnDisable() // GOOD HABIT PART 2
+    private void OnDisable()
     {
         inputActions.Player.Disable();
     }
@@ -99,7 +101,7 @@ public class PlayerSystems : MonoBehaviour
         if (shooting && !targetted && currentAmmo > 0)
         {
             StartCoroutine(Shooting());
-            StartCoroutine(RecoilOverTime());
+            if (recoilCoroutine == null) recoilCoroutine = StartCoroutine(RecoilOverTime());    
         }
         if (!shooting && !targetted && reloadInput && storedMag > 0 && !reloading) StartCoroutine(Reload());
     }
@@ -160,15 +162,19 @@ public class PlayerSystems : MonoBehaviour
         reloading = false;
     }
     private void UpdateAmmoUI() => ammo.text = $"{currentAmmo}/{storedMag}";
-    private void RecoilOverTime()
+    private IEnumerator RecoilOverTime()
     {
-        while (shooting)
+        while (shooting && recoilMultiplier <= 1)
         {
-            recoilMultiplier++;
+            recoilMultiplier = Mathf.Min(recoilMultiplier += Time.deltaTime, 1);
+            Debug.Log(recoilMultiplier);
+            yield return null;
         }
         while (!shooting && recoilMultiplier > 0)
         {
-            recoilMultiplier--;
+            recoilMultiplier = Mathf.Max(recoilMultiplier - Time.deltaTime, 0f);
+            Debug.Log(recoilMultiplier);
+            yield return null;
         }
     }
 }
