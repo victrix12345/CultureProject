@@ -11,10 +11,26 @@ public class PlayerSystems : MonoBehaviour
         _waitForSeconds1 = new WaitForSeconds(1f);
     private InputSystem_Actions inputActions;
     private CharacterController charCon;
-    private const float grav = (-9.81f * 1.5f), jumpHeight = 2f;
-    private float speed, recoilMultiplier = 0;
+    private const float
+        grav = (-9.81f * 1.5f),
+        jumpHeight = 2f,
+        recoilRecoveryRate = 8f,
+        patternResetDelay = 0.4f,
+        baseRecoilPitch = 1.2f,
+        pitchEscelation = 0.18f,
+        maxPitch = 4.5f,
+        yawSpread = 1.2f,
+        yawEscalation = 0.08f;
+    private float 
+        speed, 
+        recoilMultiplier = 0,
+        yawDirection = 0f,
+        timeSinceShot = 0f;
     private Vector3 playerVel;
-    private Vector2 movement, look, recoil;
+    private Vector2
+        movement,
+        look,
+        recoilOffset = Vector2.zero;
     private bool 
         grounded = true, 
         jumped = false, 
@@ -24,7 +40,11 @@ public class PlayerSystems : MonoBehaviour
         reloadInput = false, 
         reloading = false;
     public GameObject cam, shootPoint;
-    private int mapLayerMask, storedMag = 2, currentAmmo = 20;
+    private int 
+        mapLayerMask,
+        storedMag = 2, 
+        currentAmmo = 20,
+        shotIndex = 0;
     private LineRenderer lineRenderer;
     public TextMeshProUGUI ammo;
     private Coroutine recoilCoroutine;
@@ -98,12 +118,38 @@ public class PlayerSystems : MonoBehaviour
     {
         CameraCalc();
 
-        if (shooting && !targetted && currentAmmo > 0)
-        {
-            StartCoroutine(Shooting());
-            if (recoilCoroutine == null) recoilCoroutine = StartCoroutine(RecoilOverTime());    
-        }
+        if (shooting && !targetted && currentAmmo > 0) StartCoroutine(Shooting()); 
         if (!shooting && !targetted && reloadInput && storedMag > 0 && !reloading) StartCoroutine(Reload());
+
+        HandleRecoilRecovery();
+    }
+    private void ApplyRecoil()
+    {
+        float pitch = Mathf.Min(baseRecoilPitch + (pitchEscelation * shotIndex), maxPitch);
+
+        pitch += Random.Range(-0.2f, 0.3f);
+
+        float maxYaw = yawSpread + (yawEscalation * shotIndex);
+
+        yawDirection = Mathf.Clamp(yawDirection + Random.Range(-0.6f, 0.6f), -1f, 1f);
+        float yaw = yawDirection * Random.Range(0.1f, maxYaw);
+
+        recoilOffset += new Vector2(pitch, yaw);
+        shotIndex++;
+        timeSinceShot = 0f;
+    }
+    private void HandleRecoilRecovery()
+    {
+        if (!shooting)
+        {
+            timeSinceShot += Time.deltaTime;
+            if (timeSinceShot > patternResetDelay)
+            {
+                shotIndex = 0;
+                yawDirection = 0f;
+            }
+        }
+        recoilOffset = Vector2.Lerp(recoilOffset, Vector2.zero, recoilRecoveryRate * Time.deltaTime);
     }
     IEnumerator Shooting()
     {
@@ -130,7 +176,7 @@ public class PlayerSystems : MonoBehaviour
                 Debug.Log($"Dealt {damage} damage to {aimInfo.collider.name}");
             }
         }
-
+        ApplyRecoil();
         currentAmmo--;
         UpdateAmmoUI();
         yield return _waitForSeconds0_1;
@@ -145,9 +191,9 @@ public class PlayerSystems : MonoBehaviour
     { 
         Vector3 facing = gameObject.transform.localEulerAngles;
         Vector3 facingCam = cam.transform.localEulerAngles;
-        facing.y += look.x;
+        facing.y += look.x + recoilOffset.y;
         if (facingCam.x >= 270) facingCam.x -= 360;
-        facingCam.x = Mathf.Clamp(facingCam.x, -70, 70);
+        facingCam.x = Mathf.Clamp(facingCam.x - look.y - recoilOffset.x, -70f, 70f);
         facingCam.x -= look.y;
         transform.localEulerAngles = new(0, facing.y, 0);
         cam.transform.localEulerAngles = new(facingCam.x, 0, 0);
@@ -162,19 +208,4 @@ public class PlayerSystems : MonoBehaviour
         reloading = false;
     }
     private void UpdateAmmoUI() => ammo.text = $"{currentAmmo}/{storedMag}";
-    private IEnumerator RecoilOverTime()
-    {
-        while (shooting && recoilMultiplier <= 1)
-        {
-            recoilMultiplier = Mathf.Min(recoilMultiplier += Time.deltaTime, 1);
-            Debug.Log(recoilMultiplier);
-            yield return null;
-        }
-        while (!shooting && recoilMultiplier > 0)
-        {
-            recoilMultiplier = Mathf.Max(recoilMultiplier - Time.deltaTime, 0f);
-            Debug.Log(recoilMultiplier);
-            yield return null;
-        }
-    }
 }
