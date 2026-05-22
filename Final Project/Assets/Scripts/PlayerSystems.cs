@@ -59,8 +59,13 @@ public class PlayerSystems : MonoBehaviour
         inputActions = new InputSystem_Actions();
         charCon = GetComponent<CharacterController>();
 
-        inputActions.Player.Move.performed += ctx => movement = ctx.ReadValue<Vector2>();
-        inputActions.Player.Move.canceled += _ => movement = Vector2.zero;
+        inputActions.Player.Move.performed += ctx => 
+            movement = ctx.ReadValue<Vector2>();
+            animController.SetBool("isWalking", true);
+
+        inputActions.Player.Move.canceled += _ => 
+            movement = Vector2.zero;
+            animController.SetBool("isWalking", false);
 
         inputActions.Player.Jump.performed += _ => jumped = true;
         inputActions.Player.Jump.canceled += _ => jumped = false;
@@ -156,6 +161,7 @@ public class PlayerSystems : MonoBehaviour
     IEnumerator Shooting()
     {
         targetted = true;
+        animController.SetTrigger("TriggerShooting");
         RaycastHit aimInfo = new();
         bool isHit = Physics.Raycast(cam.transform.position, cam.transform.forward, out aimInfo, 30f);
         Vector3 targetPoint = isHit ? aimInfo.point : cam.transform.position + cam.transform.forward * 30f;
