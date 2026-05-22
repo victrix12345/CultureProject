@@ -1,11 +1,10 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
-using UnityEditor.Animations;
 
 public class PlayerSystems : MonoBehaviour
 {
-    public AnimatorController animController;
+    private Animator animController;
     private static WaitForSeconds 
         _waitForSeconds0_1 = new WaitForSeconds(0.1f),
         _waitForSeconds2 = new WaitForSeconds(2f), 
@@ -54,6 +53,8 @@ public class PlayerSystems : MonoBehaviour
         mapLayerMask = LayerMask.GetMask("Map");
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        animController = GetComponent<Animator>();
 
         inputActions = new InputSystem_Actions();
         charCon = GetComponent<CharacterController>();
