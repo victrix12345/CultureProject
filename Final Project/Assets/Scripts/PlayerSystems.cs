@@ -42,7 +42,7 @@ public class PlayerSystems : MonoBehaviour
     public GameObject cam, shootPoint;
     private int 
         mapLayerMask,
-        storedMag = 2, 
+        storedMag = 10, 
         currentAmmo = 20,
         shotIndex = 0;
     private LineRenderer lineRenderer;
