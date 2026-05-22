@@ -16,9 +16,9 @@ public class PlayerSystems : MonoBehaviour
         jumpHeight = 2f,
         recoilRecoveryRate = 8f,
         patternResetDelay = 0.4f,
-        baseRecoilPitch = 0.04f,
-        pitchEscelation = 0.03f,
-        maxPitch = 0.15f,
+        baseRecoilPitch = 0.02f,
+        pitchEscelation = 0.01f,
+        maxPitch = 0.1f,
         yawSpread = 0.05f,
         yawEscalation = 0.01f;
     private float
@@ -133,7 +133,8 @@ public class PlayerSystems : MonoBehaviour
         yawDirection = Mathf.Clamp(yawDirection + Random.Range(-0.3f, 0.3f), -0.5f, 0.5f);
         float yaw = yawDirection * Random.Range(0.1f, maxYaw);
 
-        recoilOffset += new Vector2(pitch, yaw);
+        if (shotIndex < 6) recoilOffset += new Vector2(pitch, yaw);
+        else recoilOffset += new Vector2(0, yaw);
         shotIndex++;
         timeSinceShot = 0f;
     }
@@ -163,8 +164,8 @@ public class PlayerSystems : MonoBehaviour
         lineRenderer.enabled = true;
         lineRenderer.SetPosition(0, shootPoint.transform.position);
         lineRenderer.SetPosition(1, targetPoint);
-        lineRenderer.startColor = !mapHit ? Color.green : Color.red;
-        lineRenderer.endColor = !mapHit ? Color.green : Color.red;
+        lineRenderer.startColor = !mapHit && isHit ? Color.green : Color.red;
+        lineRenderer.endColor = !mapHit && isHit ? Color.green : Color.red;
 
         if (isHit && !mapHit)
         {
