@@ -16,8 +16,8 @@ public class PlayerSystems : MonoBehaviour
         jumpHeight = 2f,
         recoilRecoveryRate = 8f,
         patternResetDelay = 0.4f,
-        baseRecoilPitch = 0.02f,
-        pitchEscelation = 0.01f,
+        baseRecoilPitch = 0.04f,
+        pitchEscelation = 0.02f,
         maxPitch = 0.1f,
         yawSpread = 0.05f,
         yawEscalation = 0.01f;
@@ -59,14 +59,16 @@ public class PlayerSystems : MonoBehaviour
         inputActions = new InputSystem_Actions();
         charCon = GetComponent<CharacterController>();
 
-        inputActions.Player.Move.performed += ctx => 
+        inputActions.Player.Move.performed += ctx =>
+        {
             movement = ctx.ReadValue<Vector2>();
             animController.SetBool("isWalking", true);
-
-        inputActions.Player.Move.canceled += _ => 
+        };
+        inputActions.Player.Move.canceled += _ =>
+        {
             movement = Vector2.zero;
             animController.SetBool("isWalking", false);
-
+        };
         inputActions.Player.Jump.performed += _ => jumped = true;
         inputActions.Player.Jump.canceled += _ => jumped = false;
 
@@ -133,11 +135,11 @@ public class PlayerSystems : MonoBehaviour
     {
         float pitch = Mathf.Min(baseRecoilPitch + (pitchEscelation * shotIndex), maxPitch);
 
-        pitch += Random.Range(-0.1f, 0.1f);
+        pitch += Random.Range(0.1f, 0.3f);
 
         float maxYaw = yawSpread + (yawEscalation * shotIndex);
 
-        yawDirection = Mathf.Clamp(yawDirection + Random.Range(-0.3f, 0.3f), -0.5f, 0.5f);
+        yawDirection = Mathf.Clamp(yawDirection + Random.Range(-0.15f, 0.15f), -0.3f, 0.3f);
         float yaw = yawDirection * Random.Range(0.1f, maxYaw);
 
         if (shotIndex < 6) recoilOffset += new Vector2(pitch, yaw);
@@ -161,7 +163,7 @@ public class PlayerSystems : MonoBehaviour
     IEnumerator Shooting()
     {
         targetted = true;
-        animController.SetTrigger("TriggerShooting");
+        animController.SetTrigger("TriggerShoot");
         RaycastHit aimInfo = new();
         bool isHit = Physics.Raycast(cam.transform.position, cam.transform.forward, out aimInfo, 30f);
         Vector3 targetPoint = isHit ? aimInfo.point : cam.transform.position + cam.transform.forward * 30f;
