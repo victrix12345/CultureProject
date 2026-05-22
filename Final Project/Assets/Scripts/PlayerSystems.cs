@@ -16,15 +16,16 @@ public class PlayerSystems : MonoBehaviour
         jumpHeight = 2f,
         recoilRecoveryRate = 8f,
         patternResetDelay = 0.4f,
-        baseRecoilPitch = 0.04f,
-        pitchEscelation = 0.03f,
+        baseRecoilPitch = 0.02f,
+        pitchEscelation = 0.05f,
         maxPitch = 0.15f,
         yawSpread = 0.05f,
         yawEscalation = 0.01f;
     private float 
         speed,
         yawDirection = 0f,
-        timeSinceShot = 0f;
+        timeSinceShot = 0f,
+        camSens = 0.5f;
     private Vector3 playerVel;
     private Vector2
         movement,
@@ -189,6 +190,7 @@ public class PlayerSystems : MonoBehaviour
     { 
         Vector3 facing = gameObject.transform.localEulerAngles;
         Vector3 facingCam = cam.transform.localEulerAngles;
+        look *= camSens;
         facing.y += look.x + recoilOffset.y;
         if (facingCam.x >= 270) facingCam.x -= 360;
         facingCam.x = Mathf.Clamp(facingCam.x - look.y - recoilOffset.x, -70f, 70f);
