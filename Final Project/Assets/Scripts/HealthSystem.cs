@@ -1,10 +1,10 @@
 using UnityEngine;
-using TMPro;
+using UnityEngine.UI;
 public class HealthSystem : MonoBehaviour
 {
     private int health = 100;
     private const int HEALTHMAX = 100;
-    public TextMeshProUGUI healthUI;
+    public Slider healthUI;
     private bool isPlayer = false;
     private void Awake()
     {
@@ -22,5 +22,5 @@ public class HealthSystem : MonoBehaviour
         health = Mathf.Min(health + heal, HEALTHMAX);
         if (isPlayer) UpdateHealthUI();
     }
-    private void UpdateHealthUI() => healthUI.text = $"{health}/{HEALTHMAX}";
+    private void UpdateHealthUI() => healthUI.value = health;
 }

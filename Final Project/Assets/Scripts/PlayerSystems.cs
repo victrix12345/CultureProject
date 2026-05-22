@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
-using System.Net;
 
 public class PlayerSystems : MonoBehaviour
 {
@@ -17,8 +16,8 @@ public class PlayerSystems : MonoBehaviour
         recoilRecoveryRate = 8f,
         patternResetDelay = 0.4f,
         baseRecoilPitch = 0.02f,
-        pitchEscelation = 0.05f,
-        maxPitch = 0.15f,
+        pitchEscelation = 0.01f,
+        maxPitch = 0.1f,
         yawSpread = 0.05f,
         yawEscalation = 0.01f;
     private float 
@@ -125,7 +124,6 @@ public class PlayerSystems : MonoBehaviour
     private void ApplyRecoil()
     {
         float pitch = Mathf.Min(baseRecoilPitch + (pitchEscelation * shotIndex), maxPitch);
-
         pitch += Random.Range(0.05f, 0.15f);
 
         float maxYaw = yawSpread + (yawEscalation * shotIndex);
@@ -133,7 +131,8 @@ public class PlayerSystems : MonoBehaviour
         yawDirection = Mathf.Clamp(yawDirection + Random.Range(-0.3f, 0.3f), -0.5f, 0.5f);
         float yaw = yawDirection * Random.Range(0.1f, maxYaw);
 
-        recoilOffset += new Vector2(pitch, yaw);
+        if (shotIndex < 6) recoilOffset += new Vector2(pitch, yaw);
+        else recoilOffset += new Vector2(0, yaw);
         shotIndex++;
         timeSinceShot = 0f;
     }
@@ -163,8 +162,8 @@ public class PlayerSystems : MonoBehaviour
         lineRenderer.enabled = true;
         lineRenderer.SetPosition(0, shootPoint.transform.position);
         lineRenderer.SetPosition(1, targetPoint);
-        lineRenderer.startColor = !mapHit ? Color.green : Color.red;
-        lineRenderer.endColor = !mapHit ? Color.green : Color.red;
+        lineRenderer.startColor = !mapHit && isHit ? Color.green : Color.red;
+        lineRenderer.endColor = !mapHit && isHit ? Color.green : Color.red;
 
         if (isHit && !mapHit)
         {
