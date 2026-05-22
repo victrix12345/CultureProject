@@ -1,10 +1,11 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
-using System.Net;
+using UnityEditor.Animations;
 
 public class PlayerSystems : MonoBehaviour
 {
+    public AnimatorController animController;
     private static WaitForSeconds 
         _waitForSeconds0_1 = new WaitForSeconds(0.1f),
         _waitForSeconds2 = new WaitForSeconds(2f), 
