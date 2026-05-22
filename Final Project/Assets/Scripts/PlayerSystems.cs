@@ -16,7 +16,7 @@ public class PlayerSystems : MonoBehaviour
         jumpHeight = 2f,
         recoilRecoveryRate = 8f,
         patternResetDelay = 0.4f,
-        baseRecoilPitch = 0.04f,
+        baseRecoilPitch = 0.03f,
         pitchEscelation = 0.02f,
         maxPitch = 0.1f,
         yawSpread = 0.05f,
