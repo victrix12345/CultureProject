@@ -7,7 +7,7 @@ public class PlayerSystems : MonoBehaviour
 {
     private static WaitForSeconds 
         _waitForSeconds0_1 = new WaitForSeconds(0.1f),
-        _waitForSeconds0_5 = new WaitForSeconds(0.5f), 
+        _waitForSeconds2 = new WaitForSeconds(2f), 
         _waitForSeconds1 = new WaitForSeconds(1f);
     private InputSystem_Actions inputActions;
     private CharacterController charCon;
@@ -202,7 +202,7 @@ public class PlayerSystems : MonoBehaviour
     public IEnumerator Reload()
     {
         reloading = true;
-        yield return _waitForSeconds0_5;
+        yield return _waitForSeconds2;
         currentAmmo = 20;
         storedMag--;
         UpdateAmmoUI();
