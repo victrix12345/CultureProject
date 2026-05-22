@@ -126,7 +126,7 @@ public class PlayerSystems : MonoBehaviour
     {
         float pitch = Mathf.Min(baseRecoilPitch + (pitchEscelation * shotIndex), maxPitch);
 
-        pitch += Random.Range(-0.1f, 0.1f);
+        pitch += Random.Range(0.05f, 0.15f);
 
         float maxYaw = yawSpread + (yawEscalation * shotIndex);
 
