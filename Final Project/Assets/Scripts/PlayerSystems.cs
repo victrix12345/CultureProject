@@ -16,14 +16,13 @@ public class PlayerSystems : MonoBehaviour
         jumpHeight = 2f,
         recoilRecoveryRate = 8f,
         patternResetDelay = 0.4f,
-        baseRecoilPitch = 1.2f,
-        pitchEscelation = 0.18f,
-        maxPitch = 4.5f,
-        yawSpread = 1.2f,
-        yawEscalation = 0.08f;
+        baseRecoilPitch = 0.04f,
+        pitchEscelation = 0.03f,
+        maxPitch = 0.15f,
+        yawSpread = 0.05f,
+        yawEscalation = 0.01f;
     private float 
-        speed, 
-        recoilMultiplier = 0,
+        speed,
         yawDirection = 0f,
         timeSinceShot = 0f;
     private Vector3 playerVel;
@@ -47,7 +46,6 @@ public class PlayerSystems : MonoBehaviour
         shotIndex = 0;
     private LineRenderer lineRenderer;
     public TextMeshProUGUI ammo;
-    private Coroutine recoilCoroutine;
     void Awake()
     {
         UpdateAmmoUI();
@@ -127,11 +125,11 @@ public class PlayerSystems : MonoBehaviour
     {
         float pitch = Mathf.Min(baseRecoilPitch + (pitchEscelation * shotIndex), maxPitch);
 
-        pitch += Random.Range(-0.2f, 0.3f);
+        pitch += Random.Range(-0.1f, 0.1f);
 
         float maxYaw = yawSpread + (yawEscalation * shotIndex);
 
-        yawDirection = Mathf.Clamp(yawDirection + Random.Range(-0.6f, 0.6f), -1f, 1f);
+        yawDirection = Mathf.Clamp(yawDirection + Random.Range(-0.3f, 0.3f), -0.5f, 0.5f);
         float yaw = yawDirection * Random.Range(0.1f, maxYaw);
 
         recoilOffset += new Vector2(pitch, yaw);
