@@ -16,10 +16,10 @@ public class PlayerSystems : MonoBehaviour
         jumpHeight = 2f,
         recoilRecoveryRate = 8f,
         patternResetDelay = 0.4f,
-        baseRecoilPitch = 0.03f,
-        pitchEscelation = 0.02f,
-        maxPitch = 0.1f,
-        yawSpread = 0.05f,
+        baseRecoilPitch = 0.005f,
+        pitchEscelation = 0.005f,
+        maxPitch = 0.02f,
+        yawSpread = 0.03f,
         yawEscalation = 0.01f;
     private float
         mouseSens = 0.5f,
@@ -135,15 +135,14 @@ public class PlayerSystems : MonoBehaviour
     {
         float pitch = Mathf.Min(baseRecoilPitch + (pitchEscelation * shotIndex), maxPitch);
 
-        pitch += Random.Range(0.1f, 0.3f);
+        pitch += Random.Range(0.08f, 0.12f);
 
         float maxYaw = yawSpread + (yawEscalation * shotIndex);
 
         yawDirection = Mathf.Clamp(yawDirection + Random.Range(-0.15f, 0.15f), -0.3f, 0.3f);
         float yaw = yawDirection * Random.Range(0.1f, maxYaw);
 
-        if (shotIndex < 6) recoilOffset += new Vector2(pitch, yaw);
-        else recoilOffset += new Vector2(0, yaw);
+        recoilOffset += new Vector2(pitch, yaw);
         shotIndex++;
         timeSinceShot = 0f;
     }
