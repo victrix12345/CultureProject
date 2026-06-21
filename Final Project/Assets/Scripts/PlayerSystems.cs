@@ -5,9 +5,10 @@ using TMPro;
 public class PlayerSystems : MonoBehaviour
 {
     private Animator animController;
-    private static WaitForSeconds 
+    private static WaitForSeconds
         _waitForSeconds0_1 = new WaitForSeconds(0.1f),
-        _waitForSeconds2 = new WaitForSeconds(2f), 
+        _waitForSeconds0_5 = new WaitForSeconds(0.5f),
+        _waitForSeconds1_43 = new WaitForSeconds(1.43f), 
         _waitForSeconds1 = new WaitForSeconds(1f);
     private InputSystem_Actions inputActions;
     private CharacterController charCon;
@@ -16,8 +17,8 @@ public class PlayerSystems : MonoBehaviour
         jumpHeight = 2f,
         recoilRecoveryRate = 8f,
         patternResetDelay = 0.4f,
-        baseRecoilPitch = 0.005f,
-        pitchEscelation = 0.005f,
+        baseRecoilPitch = 0.002f,
+        pitchEscelation = 0.004f,
         maxPitch = 0.02f,
         yawSpread = 0.03f,
         yawEscalation = 0.01f;
@@ -26,27 +27,32 @@ public class PlayerSystems : MonoBehaviour
         speed,
         yawDirection = 0f,
         timeSinceShot = 0f;
-    private Vector3 playerVel;
+    private Vector3 playerVel, endMove;
     private Vector2
         movement,
         look,
         recoilOffset = Vector2.zero;
-    private bool 
-        grounded = true, 
-        jumped = false, 
-        sneaked = false, 
-        shooting = false, 
-        targetted = false, 
-        reloadInput = false, 
+    private bool
+        grounded = true,
+        jumped = false,
+        sneaked = false,
+        shooting = false,
+        targetted = false,
+        reloadInput = false,
         reloading = false;
-    public GameObject cam, shootPoint;
+    [SerializeField] private GameObject
+        cam,
+        shootPoint,
+        magPoint,
+        gunObject,
+        newMag;
     private int 
         mapLayerMask,
         storedMag = 10, 
         currentAmmo = 20,
         shotIndex = 0;
     private LineRenderer lineRenderer;
-    public TextMeshProUGUI ammo;
+    [SerializeField] private TextMeshProUGUI ammo;
     void Awake()
     {
         UpdateAmmoUI();
@@ -119,14 +125,19 @@ public class PlayerSystems : MonoBehaviour
 
         speed = sneaked ? 3.5f : 7;
 
-        Vector3 endMove = (newMove * speed) + (Vector3.up * playerVel.y);
+        endMove = (newMove * speed) + (Vector3.up * playerVel.y);
         charCon.Move(endMove * Time.deltaTime);
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        storedMag += 10;
+        UpdateAmmoUI();
     }
     private void Update()
     {
         CameraCalc();
 
-        if (shooting && !targetted && currentAmmo > 0) StartCoroutine(Shooting()); 
+        if (shooting && !targetted && currentAmmo > 0 && !reloading) StartCoroutine(Shooting()); 
         if (!shooting && !targetted && reloadInput && storedMag > 0 && !reloading) StartCoroutine(Reload());
 
         HandleRecoilRecovery();
@@ -211,7 +222,14 @@ public class PlayerSystems : MonoBehaviour
     public IEnumerator Reload()
     {
         reloading = true;
-        yield return _waitForSeconds2;
+        animController.SetTrigger("TriggerReload");
+        yield return _waitForSeconds0_5;
+        Quaternion multQuat = Quaternion.AngleAxis(-140f, Vector3.right);
+        Quaternion finalAngle = gunObject.transform.rotation * multQuat;
+        GameObject spawnMag = Instantiate(newMag, magPoint.transform.position, finalAngle);
+        Rigidbody magBody = spawnMag.GetComponent<Rigidbody>();
+        magBody.AddForce(gunObject.transform.forward + (endMove * Time.deltaTime), ForceMode.Impulse);
+        yield return _waitForSeconds1_43;
         currentAmmo = 20;
         storedMag--;
         UpdateAmmoUI();
